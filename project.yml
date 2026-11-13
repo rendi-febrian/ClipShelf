@@ -1,0 +1,26 @@
+name: ClipShelf
+options:
+  bundleIdPrefix: com.rendifebrian
+  deploymentTarget:
+    macOS: "14.0"
+targets:
+  ClipShelf:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/ClipShelf
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rendifebrian.clipshelf
+        PRODUCT_NAME: ClipShelf
+        MARKETING_VERSION: "1.3"
+        CURRENT_PROJECT_VERSION: "4"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        SWIFT_VERSION: "5.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        CODE_SIGNING_ALLOWED: YES
+        CODE_SIGN_IDENTITY: "-"
+
