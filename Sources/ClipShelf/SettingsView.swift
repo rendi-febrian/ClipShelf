@@ -7,6 +7,7 @@ struct SettingsView: View {
     @StateObject private var loginItemManager = LoginItemManager()
     @State private var permissionStatus = CGPreflightPostEventAccess()
     @State private var isRecordingShortcut = false
+    @AppStorage("clipshelf.shareRetention") private var shareRetentionRawValue = ShareRetention.sevenDays.rawValue
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -48,6 +49,17 @@ struct SettingsView: View {
                         .foregroundStyle(.red)
                 }
                 Text("Gunakan kombinasi dengan ⌘, ⌥, atau ⌃. Shortcut ini dapat mengambil alih fungsi tombol yang sama di app lain.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Bagikan link") {
+                Picker("Masa aktif link", selection: $shareRetentionRawValue) {
+                    ForEach(ShareRetention.allCases) { retention in
+                        Text(retention.title).tag(retention.rawValue)
+                    }
+                }
+                Text("Pilihan ini berlaku untuk link baru. Link yang sudah dibuat tetap mengikuti masa aktifnya sendiri; Never berarti link tidak kedaluwarsa otomatis.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -108,6 +120,13 @@ struct SettingsView: View {
             Section("Tentang") {
                 LabeledContent("Versi", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 LabeledContent("Riwayat tersimpan", value: "\(store.items.count) item")
+                LabeledContent("Dibuat oleh", value: "Rendi Febrian")
+                Link(destination: URL(string: "https://github.com/rendi-febrian")!) {
+                    Label("Profil GitHub", systemImage: "person.crop.circle")
+                }
+                Link(destination: URL(string: "https://github.com/rendi-febrian/ClipShelf")!) {
+                    Label("Repo ClipShelf", systemImage: "chevron.left.forwardslash.chevron.right")
+                }
             }
         }
         .formStyle(.grouped)

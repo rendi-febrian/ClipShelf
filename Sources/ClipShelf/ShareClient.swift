@@ -1,14 +1,40 @@
 import Foundation
 
+enum ShareRetention: String, CaseIterable, Identifiable {
+    case oneDay = "1d"
+    case sevenDays = "7d"
+    case thirtyDays = "30d"
+    case never
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .oneDay: return "1 hari"
+        case .sevenDays: return "7 hari"
+        case .thirtyDays: return "30 hari"
+        case .never: return "Never"
+        }
+    }
+
+    var confirmationDuration: String {
+        self == .never ? "tanpa kedaluwarsa" : "selama \(title)"
+    }
+
+    var successDescription: String {
+        self == .never ? "Link ini tidak akan kedaluwarsa." : "Link ini berlaku selama \(title)."
+    }
+}
+
 enum ClipShelfShareClient {
     private static let endpoint = URL(string: "https://clipshelf.ild.my.id/api/v1/shares")!
 
-    static func createLink(for text: String) async throws -> URL {
+    static func createLink(for text: String, retention: ShareRetention) async throws -> URL {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 20
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(CreateShareRequest(text: text))
+        request.httpBody = try JSONEncoder().encode(CreateShareRequest(text: text, expiresIn: retention.rawValue))
 
         let data: Data
         let response: URLResponse
@@ -44,6 +70,12 @@ enum ClipShelfShareClient {
 
 private struct CreateShareRequest: Encodable {
     let text: String
+    let expiresIn: String
+
+    enum CodingKeys: String, CodingKey {
+        case text
+        case expiresIn = "expires_in"
+    }
 }
 
 private struct CreateShareResponse: Decodable {

@@ -12,6 +12,11 @@ struct ClipboardPanel: View {
     @State private var activeShareItemID: UUID?
     @State private var isShowingShareConfirmation = false
     @State private var shareAlert: ShareAlert?
+    @AppStorage("clipshelf.shareRetention") private var shareRetentionRawValue = ShareRetention.sevenDays.rawValue
+
+    private var shareRetention: ShareRetention {
+        ShareRetention(rawValue: shareRetentionRawValue) ?? .sevenDays
+    }
 
     private var visibleItems: [ClipboardItem] {
         store.filteredItems(matching: searchText)
@@ -60,13 +65,14 @@ struct ClipboardPanel: View {
         ) {
             Button("Buat link") {
                 guard let item = pendingShareItem else { return }
-                Task { await createShare(for: item) }
+                let retention = shareRetention
+                Task { await createShare(for: item, retention: retention) }
             }
             Button("Batal", role: .cancel) {
                 pendingShareItem = nil
             }
         } message: {
-            Text("Teks akan dikirim ke clipshelf.ild.my.id dan bisa dibaca siapa saja yang memiliki link selama 7 hari. Jangan bagikan kata sandi atau data sensitif.")
+            Text("Teks akan dikirim ke clipshelf.ild.my.id dan bisa dibaca siapa saja yang memiliki link \(shareRetention.confirmationDuration). Jangan bagikan kata sandi atau data sensitif.")
         }
         .alert(item: $shareAlert) { alert in
             if let url = alert.url {
@@ -234,7 +240,7 @@ struct ClipboardPanel: View {
     }
 
     @MainActor
-    private func createShare(for item: ClipboardItem) async {
+    private func createShare(for item: ClipboardItem, retention: ShareRetention) async {
         guard let text = item.text else { return }
         activeShareItemID = item.id
         defer {
@@ -243,10 +249,10 @@ struct ClipboardPanel: View {
         }
 
         do {
-            let url = try await ClipShelfShareClient.createLink(for: text)
+            let url = try await ClipShelfShareClient.createLink(for: text, retention: retention)
             shareAlert = ShareAlert(
                 title: "Link berhasil dibuat",
-                message: url.absoluteString,
+                message: "\(url.absoluteString)\n\n\(retention.successDescription)",
                 url: url
             )
         } catch {

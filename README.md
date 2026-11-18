@@ -11,7 +11,7 @@ Clipboard history for macOS. The app lives in the menu bar and opens with **⌘�
 - Pause monitoring and clear the history at any time.
 - Optional start-at-login setting managed by macOS Login Items.
 - Skips clipboard changes made while common password-manager apps are frontmost.
-- Share a text entry as a link after confirming the upload; the link expires after seven days. Image sharing is not supported yet.
+- Share a text entry as a link after confirming the upload; choose 1, 7, or 30 days, or keep it active indefinitely. Image sharing is not supported yet.
 
 Clipboard history is stored locally as a JSON file without additional app-level encryption and is not synced. When you explicitly create a share, the selected text is uploaded to ClipShelf Share; anyone with the link can read it until it expires. Do not share passwords or other sensitive content.
 macOS may ask for permission to read clipboard contents and to send the paste keystroke. If auto-paste permission is declined, the selected item is still copied; press **⌘V** yourself.
@@ -20,7 +20,7 @@ macOS may ask for permission to read clipboard contents and to send the paste ke
 
 Requires Xcode and XcodeGen.
 
-The ready-to-open app is `dist/ClipShelf-1.3.app`; a zipped copy is `dist/ClipShelf-1.3-macOS.zip`.
+The ready-to-open app is `dist/ClipShelf-1.4.app`; a zipped copy is `dist/ClipShelf-1.4-macOS.zip`.
 
 ```sh
 xcodegen generate

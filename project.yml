@@ -13,8 +13,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rendifebrian.clipshelf
         PRODUCT_NAME: ClipShelf
-        MARKETING_VERSION: "1.3"
-        CURRENT_PROJECT_VERSION: "4"
+        MARKETING_VERSION: "1.4"
+        CURRENT_PROJECT_VERSION: "5"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_LSUIElement: YES
