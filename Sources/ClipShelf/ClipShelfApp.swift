@@ -49,7 +49,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWorkspace.didActivateApplicationNotification,
             object: nil
         )
-
         shortcutManager.onShortcut = { [weak self] in
             self?.togglePopover()
         }
@@ -60,6 +59,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let application = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
               application.bundleIdentifier != Bundle.main.bundleIdentifier else { return }
         lastExternalApplication = application
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        guard popover.isShown else { return }
+        popover.performClose(nil)
     }
 
     @objc private func togglePopover() {

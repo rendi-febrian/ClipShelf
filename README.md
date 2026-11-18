@@ -11,9 +11,9 @@ Clipboard history for macOS. The app lives in the menu bar and opens with **⌘�
 - Pause monitoring and clear the history at any time.
 - Optional start-at-login setting managed by macOS Login Items.
 - Skips clipboard changes made while common password-manager apps are frontmost.
-- Share a text entry as a link after confirming the upload; choose 1, 7, or 30 days, or keep it active indefinitely. Image sharing is not supported yet.
+- Share a text entry or image as a link after confirming the upload; choose 1, 7, or 30 days, or keep it active indefinitely.
 
-Clipboard history is stored locally as a JSON file without additional app-level encryption and is not synced. When you explicitly create a share, the selected text is uploaded to ClipShelf Share; anyone with the link can read it until it expires. Do not share passwords or other sensitive content.
+Clipboard history is stored locally as a JSON file without additional app-level encryption and is not synced. When you explicitly create a share, the selected text or image is uploaded to ClipShelf Share; anyone with the link can view it until it expires. Do not share passwords or other sensitive content.
 macOS may ask for permission to read clipboard contents and to send the paste keystroke. If auto-paste permission is declined, the selected item is still copied; press **⌘V** yourself.
 
 ## Build

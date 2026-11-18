@@ -28,13 +28,33 @@ enum ShareRetention: String, CaseIterable, Identifiable {
 
 enum ClipShelfShareClient {
     private static let endpoint = URL(string: "https://clipshelf.ild.my.id/api/v1/shares")!
+    private static let maxImageBytes = 4_000_000
 
     static func createLink(for text: String, retention: ShareRetention) async throws -> URL {
+        try await createLink(
+            with: CreateShareRequest(text: text, imageBase64: nil, expiresIn: retention.rawValue),
+            isImage: false
+        )
+    }
+
+    static func createLink(for imageData: Data, retention: ShareRetention) async throws -> URL {
+        guard imageData.count <= maxImageBytes else { throw ShareError.imageTooLarge }
+        return try await createLink(
+            with: CreateShareRequest(
+                text: nil,
+                imageBase64: imageData.base64EncodedString(),
+                expiresIn: retention.rawValue
+            ),
+            isImage: true
+        )
+    }
+
+    private static func createLink(with payload: CreateShareRequest, isImage: Bool) async throws -> URL {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 20
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(CreateShareRequest(text: text, expiresIn: retention.rawValue))
+        request.httpBody = try JSONEncoder().encode(payload)
 
         let data: Data
         let response: URLResponse
@@ -49,7 +69,7 @@ enum ClipShelfShareClient {
         }
         guard response.statusCode == 201 else {
             if response.statusCode == 413 {
-                throw ShareError.textTooLarge
+                throw isImage ? ShareError.imageTooLarge : ShareError.textTooLarge
             }
             if response.statusCode == 429 {
                 throw ShareError.rateLimited
@@ -69,11 +89,13 @@ enum ClipShelfShareClient {
 }
 
 private struct CreateShareRequest: Encodable {
-    let text: String
+    let text: String?
+    let imageBase64: String?
     let expiresIn: String
 
     enum CodingKeys: String, CodingKey {
         case text
+        case imageBase64 = "image_base64"
         case expiresIn = "expires_in"
     }
 }
@@ -86,6 +108,7 @@ private enum ShareError: LocalizedError {
     case unavailable
     case invalidResponse
     case textTooLarge
+    case imageTooLarge
     case rateLimited
     case requestRejected(Int)
 
@@ -97,6 +120,8 @@ private enum ShareError: LocalizedError {
             return "Layanan ClipShelf Share mengirim jawaban yang tidak dikenali."
         case .textTooLarge:
             return "Teks terlalu besar untuk dibagikan sebagai link."
+        case .imageTooLarge:
+            return "Gambar terlalu besar untuk dibagikan sebagai link."
         case .rateLimited:
             return "Terlalu banyak link dibuat dari jaringan ini. Coba lagi nanti."
         case .requestRejected(let statusCode):

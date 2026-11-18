@@ -72,7 +72,8 @@ struct ClipboardPanel: View {
                 pendingShareItem = nil
             }
         } message: {
-            Text("Teks akan dikirim ke clipshelf.ild.my.id dan bisa dibaca siapa saja yang memiliki link \(shareRetention.confirmationDuration). Jangan bagikan kata sandi atau data sensitif.")
+            let contentType = pendingShareItem?.isImage == true ? "Gambar" : "Teks"
+            Text("\(contentType) akan dikirim ke clipshelf.ild.my.id dan bisa dibaca siapa saja yang memiliki link \(shareRetention.confirmationDuration). Jangan bagikan kata sandi atau data sensitif.")
         }
         .alert(item: $shareAlert) { alert in
             if let url = alert.url {
@@ -210,7 +211,7 @@ struct ClipboardPanel: View {
             .buttonStyle(.plain)
             .help("Pilih dan tempel item ini")
 
-            if !item.isImage, item.text != nil {
+            if item.text != nil || item.imageData != nil {
                 Button {
                     pendingShareItem = item
                     isShowingShareConfirmation = true
@@ -228,8 +229,8 @@ struct ClipboardPanel: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(activeShareItemID != nil)
-                .help("Bagikan teks sebagai link")
-                .accessibilityLabel("Bagikan teks sebagai link")
+                .help(item.isImage ? "Bagikan gambar sebagai link" : "Bagikan teks sebagai link")
+                .accessibilityLabel(item.isImage ? "Bagikan gambar sebagai link" : "Bagikan teks sebagai link")
             }
         }
         .padding(10)
@@ -241,7 +242,6 @@ struct ClipboardPanel: View {
 
     @MainActor
     private func createShare(for item: ClipboardItem, retention: ShareRetention) async {
-        guard let text = item.text else { return }
         activeShareItemID = item.id
         defer {
             activeShareItemID = nil
@@ -249,7 +249,14 @@ struct ClipboardPanel: View {
         }
 
         do {
-            let url = try await ClipShelfShareClient.createLink(for: text, retention: retention)
+            let url: URL
+            if let text = item.text {
+                url = try await ClipShelfShareClient.createLink(for: text, retention: retention)
+            } else if let imageData = item.imageData {
+                url = try await ClipShelfShareClient.createLink(for: imageData, retention: retention)
+            } else {
+                return
+            }
             shareAlert = ShareAlert(
                 title: "Link berhasil dibuat",
                 message: "\(url.absoluteString)\n\n\(retention.successDescription)",
