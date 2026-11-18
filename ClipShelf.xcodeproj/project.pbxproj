@@ -10,6 +10,8 @@
 		07B4137CE8D44A0C10520D72 /* ClipboardPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC487DFBFD9F28866140C81 /* ClipboardPanel.swift */; };
 		5431B9BAA145372F87421320 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE69BB50B5205FF93177FF1F /* LoginItemManager.swift */; };
 		5A57CA76DEE04C29A878DE1B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 52F6E78CD465B537AA7654CD /* Assets.xcassets */; };
+		A7CC08C8E41A43C99F22A190 /* ShortcutRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0973FBA90D44194A77F25EA /* ShortcutRecorder.swift */; };
+		C805EDB482274FAFB468D47C /* ShareClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8995F30BE840461F968001B0 /* ShareClient.swift */; };
 		8ED5AC27C15B47AE877CB385 /* ClipShelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDFD5ACDB6D6861BB00245C /* ClipShelfApp.swift */; };
 		9A3F02DE470D83CB72813653 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C75ACAA83B8124C1C1536A4A /* SettingsView.swift */; };
 		B67C8E89A6628317C4F88E36 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE51224D654158A8AC5D4A7B /* ClipboardStore.swift */; };
@@ -23,6 +25,8 @@
 		6207F5D47D1EC9B9A6E948EB /* GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutManager.swift; sourceTree = "<group>"; };
 		6448BE6D5317ECFF35A318F9 /* ClipShelf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipShelf.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C75ACAA83B8124C1C1536A4A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D0973FBA90D44194A77F25EA /* ShortcutRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorder.swift; sourceTree = "<group>"; };
+		8995F30BE840461F968001B0 /* ShareClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareClient.swift; sourceTree = "<group>"; };
 		EE51224D654158A8AC5D4A7B /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
 		EE69BB50B5205FF93177FF1F /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -54,6 +58,8 @@
 				6207F5D47D1EC9B9A6E948EB /* GlobalShortcutManager.swift */,
 				EE69BB50B5205FF93177FF1F /* LoginItemManager.swift */,
 				C75ACAA83B8124C1C1536A4A /* SettingsView.swift */,
+				D0973FBA90D44194A77F25EA /* ShortcutRecorder.swift */,
+				8995F30BE840461F968001B0 /* ShareClient.swift */,
 			);
 			name = ClipShelf;
 			path = Sources/ClipShelf;
@@ -132,6 +138,8 @@
 				F2B10905B6A7038797D4087D /* GlobalShortcutManager.swift in Sources */,
 				5431B9BAA145372F87421320 /* LoginItemManager.swift in Sources */,
 				9A3F02DE470D83CB72813653 /* SettingsView.swift in Sources */,
+				A7CC08C8E41A43C99F22A190 /* ShortcutRecorder.swift in Sources */,
+				C805EDB482274FAFB468D47C /* ShareClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

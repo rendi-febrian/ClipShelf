@@ -3,10 +3,15 @@ import SwiftUI
 
 struct ClipboardPanel: View {
     @ObservedObject var store: ClipboardStore
+    @ObservedObject var shortcutManager: GlobalShortcutManager
     let onSelect: (ClipboardItem) -> Void
 
     @State private var searchText = ""
     @FocusState private var searchFocused: Bool
+    @State private var pendingShareItem: ClipboardItem?
+    @State private var activeShareItemID: UUID?
+    @State private var isShowingShareConfirmation = false
+    @State private var shareAlert: ShareAlert?
 
     private var visibleItems: [ClipboardItem] {
         store.filteredItems(matching: searchText)
@@ -48,6 +53,39 @@ struct ClipboardPanel: View {
         .frame(width: 370, height: 510)
         .background(.regularMaterial)
         .onAppear { searchFocused = true }
+        .confirmationDialog(
+            "Bagikan clipboard sebagai link?",
+            isPresented: $isShowingShareConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Buat link") {
+                guard let item = pendingShareItem else { return }
+                Task { await createShare(for: item) }
+            }
+            Button("Batal", role: .cancel) {
+                pendingShareItem = nil
+            }
+        } message: {
+            Text("Teks akan dikirim ke clipshelf.ild.my.id dan bisa dibaca siapa saja yang memiliki link selama 7 hari. Jangan bagikan kata sandi atau data sensitif.")
+        }
+        .alert(item: $shareAlert) { alert in
+            if let url = alert.url {
+                return Alert(
+                    title: Text(alert.title),
+                    message: Text(alert.message),
+                    primaryButton: .default(Text("Salin link")) {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(url.absoluteString, forType: .string)
+                    },
+                    secondaryButton: .cancel(Text("Tutup"))
+                )
+            }
+            return Alert(
+                title: Text(alert.title),
+                message: Text(alert.message),
+                dismissButton: .default(Text("OK"))
+            )
+        }
     }
 
     private var header: some View {
@@ -63,7 +101,7 @@ struct ClipboardPanel: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Text("⌘⇧V")
+            Text(shortcutManager.shortcut.displayValue)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 7)
@@ -107,7 +145,7 @@ struct ClipboardPanel: View {
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
             if searchText.isEmpty {
-                Text("Salin teks atau gambar, lalu buka lagi dengan ⌘⇧V.")
+                Text("Salin teks atau gambar, lalu buka lagi dengan \(shortcutManager.shortcut.displayValue).")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
@@ -119,55 +157,111 @@ struct ClipboardPanel: View {
     }
 
     private func itemRow(_ item: ClipboardItem) -> some View {
-        Button {
-            onSelect(item)
-        } label: {
-            HStack(alignment: .top, spacing: 10) {
-                if let imageData = item.imageData, let image = NSImage(data: imageData) {
-                    Image(nsImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 48, height: 48)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                } else {
-                    Image(systemName: "text.alignleft")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
-                }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(item.preview)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.primary)
-                        .lineLimit(item.isImage ? 1 : 3)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack(spacing: 5) {
-                        Text(item.sourceApp)
-                        Text("·")
-                        Text(item.copiedAt.formatted(date: .omitted, time: .shortened))
-                        if item.isImage {
-                            Text("· Gambar")
-                        }
+        HStack(spacing: 8) {
+            Button {
+                onSelect(item)
+            } label: {
+                HStack(alignment: .top, spacing: 10) {
+                    if let imageData = item.imageData, let image = NSImage(data: imageData) {
+                        Image(nsImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    } else {
+                        Image(systemName: "text.alignleft")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 28, height: 28)
+                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
                     }
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(item.preview)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.primary)
+                            .lineLimit(item.isImage ? 1 : 3)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(spacing: 5) {
+                            Text(item.sourceApp)
+                            Text("·")
+                            Text(item.copiedAt.formatted(date: .omitted, time: .shortened))
+                            if item.isImage {
+                                Text("· Gambar")
+                            }
+                        }
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                    }
+                    Image(systemName: "return")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 3)
                 }
-                Image(systemName: "return")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 3)
+                .contentShape(Rectangle())
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.background.opacity(0.68), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary.opacity(0.75), lineWidth: 1))
-            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .buttonStyle(.plain)
+            .help("Pilih dan tempel item ini")
+
+            if !item.isImage, item.text != nil {
+                Button {
+                    pendingShareItem = item
+                    isShowingShareConfirmation = true
+                } label: {
+                    if activeShareItemID == item.id {
+                        ProgressView()
+                            .controlSize(.small)
+                            .frame(width: 18, height: 18)
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, height: 28)
+                    }
+                }
+                .buttonStyle(.borderless)
+                .disabled(activeShareItemID != nil)
+                .help("Bagikan teks sebagai link")
+                .accessibilityLabel("Bagikan teks sebagai link")
+            }
         }
-        .buttonStyle(.plain)
-        .help("Pilih dan tempel item ini")
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.opacity(0.68), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary.opacity(0.75), lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    @MainActor
+    private func createShare(for item: ClipboardItem) async {
+        guard let text = item.text else { return }
+        activeShareItemID = item.id
+        defer {
+            activeShareItemID = nil
+            pendingShareItem = nil
+        }
+
+        do {
+            let url = try await ClipShelfShareClient.createLink(for: text)
+            shareAlert = ShareAlert(
+                title: "Link berhasil dibuat",
+                message: url.absoluteString,
+                url: url
+            )
+        } catch {
+            shareAlert = ShareAlert(
+                title: "Gagal membuat link",
+                message: (error as? LocalizedError)?.errorDescription ?? "Terjadi kesalahan. Coba lagi nanti."
+            )
+        }
+    }
+
+    private struct ShareAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+        var url: URL?
     }
 
     private var footer: some View {

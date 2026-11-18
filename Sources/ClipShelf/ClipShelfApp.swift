@@ -7,7 +7,7 @@ struct ClipShelfApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(store: appDelegate.store)
+            SettingsView(store: appDelegate.store, shortcutManager: appDelegate.shortcutManager)
         }
     }
 }
@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
-    private var shortcutManager: GlobalShortcutManager?
+    let shortcutManager = GlobalShortcutManager()
     private var lastExternalApplication: NSRunningApplication?
     private var targetApplication: NSRunningApplication?
 
@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.animates = true
         popover.contentSize = NSSize(width: 370, height: 510)
         popover.contentViewController = NSHostingController(
-            rootView: ClipboardPanel(store: store, onSelect: { [weak self] item in
+            rootView: ClipboardPanel(store: store, shortcutManager: shortcutManager, onSelect: { [weak self] item in
                 self?.select(item)
             })
         )
@@ -50,12 +50,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
-        let manager = GlobalShortcutManager()
-        manager.onShortcut = { [weak self] in
+        shortcutManager.onShortcut = { [weak self] in
             self?.togglePopover()
         }
-        manager.register()
-        shortcutManager = manager
+        shortcutManager.register()
     }
 
     @objc private func applicationDidActivate(_ notification: Notification) {

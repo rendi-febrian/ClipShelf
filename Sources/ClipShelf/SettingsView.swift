@@ -3,15 +3,51 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var store: ClipboardStore
+    @ObservedObject var shortcutManager: GlobalShortcutManager
     @StateObject private var loginItemManager = LoginItemManager()
     @State private var permissionStatus = CGPreflightPostEventAccess()
+    @State private var isRecordingShortcut = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Form {
             Section("Shortcut") {
-                LabeledContent("Buka riwayat", value: "⌘⇧V")
-                Text("Shortcut ini dapat mengambil alih fungsi ⌘⇧V di app lain, misalnya tempel tanpa format di Google Docs.")
+                LabeledContent("Buka riwayat", value: shortcutManager.shortcut.displayValue)
+                HStack {
+                    Text("Shortcut")
+                    Spacer()
+                    ShortcutRecorder(
+                        isRecording: isRecordingShortcut,
+                        onRecord: { shortcut in
+                            shortcutManager.setShortcut(shortcut)
+                            isRecordingShortcut = false
+                        },
+                        onCancel: { isRecordingShortcut = false }
+                    )
+                    .frame(width: 1, height: 1)
+                    .opacity(0.01)
+                    .accessibilityHidden(true)
+                    Button(isRecordingShortcut ? "Tekan kombinasi…" : "Ubah") {
+                        isRecordingShortcut = true
+                    }
+                    .disabled(isRecordingShortcut)
+                    if isRecordingShortcut {
+                        Button("Batal") {
+                            isRecordingShortcut = false
+                        }
+                    } else {
+                        Button("Reset") {
+                            shortcutManager.resetShortcut()
+                        }
+                        .disabled(shortcutManager.shortcut == .default)
+                    }
+                }
+                if let errorMessage = shortcutManager.errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                Text("Gunakan kombinasi dengan ⌘, ⌥, atau ⌃. Shortcut ini dapat mengambil alih fungsi tombol yang sama di app lain.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
